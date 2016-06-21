@@ -1,5 +1,6 @@
 #A simple server
 require 'socket'
+require 'json'
 
 server = TCPServer.open(2000)
 loop {  #server runs forever
@@ -24,7 +25,25 @@ loop {  #server runs forever
     	response_body = ("Sorry, file not found.")
 	end
 
+	if method == "POST" && File.exist?(path)
+		body = ""
+		while line = client.gets
+			body << line
+			break if body =~ /\r\n\r\n$/
+		end
+	
 
+	params = {}
+	params = JSON.parse(body)
+	entries = ""
+	params["viking"].each do |key, value|
+		entries += "<li>#{key}: #{value}</li>\n"
+	end
+
+	file = File.open(path)
+	response_body = file.read.gsub("<%= yield %>", entries)
+	response_head = "HTTP/1.0 200 OK\nContent-Length: #{body.length}"
+	end
 
 	client.puts(response_head)
   	client.puts(response_body)
